@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
+
 <androidx.appcompat.widget.LinearLayoutCompat
 
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -29,6 +30,25 @@
             android:text="@string/app_name"
             android:textSize="20dp"
             android:textColor="#ffffff" />
+
+        <EditText
+            android:id="@+id/nameEditText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="9"
+            android:hint="Enter City"
+            android:inputType="textPersonName"
+            android:text="" />
+
+        <Button
+            android:id="@+id/button3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Search"
+            android:onClick="searchWeatherFunction"/>
+
     </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"
@@ -108,4 +128,5 @@
         android:layout_height="wrap_content"/>
 
 </androidx.appcompat.widget.LinearLayoutCompat>
-<!--</androidx.constraintlayout.widget.ConstraintLayout>-->
+
+    <!--</androidx.constraintlayout.widget.ConstraintLayout>-->

@@ -18,6 +18,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -47,17 +48,15 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 //    final String URL_BASE = "https://api.climacell.co/v3/weather/realtime";
     final String URL_COORD = "?lat=";
 //    final String URL_COORD = "?lat=40.5520491&lon=-74.2587568";
-
 //    final String URL_OPTIONS = "&unit_system=us&fields=wind_gust%2Ctemp%2Cfeels_like%2Cprecipitation%2Csunrise%2Csunset";
 //    final String URL_API_KEY = "&apikey=7ENTUzvN3evzjGz1Vf7IIPURvZk1BJI9";
 
     final String URL_BASE = "https://api.openweathermap.org/data/2.5/forecast/daily";
     final String URL_OPTIONS = "&units=imperial";
-//    final String URL_API_KEY = "&appid=8442306bc6d8ffad931e6055702363d0";
-final String URL_API_KEY = "&appid=0936895a398e594b0531599fe4c896cd";
+    final String URL_API_KEY = "&appid=8442306bc6d8ffad931e6055702363d0";
 
 
-
+    String query = "nothing";
 
     private GoogleApiClient mGoogleApiClient;
     private final int PERMISSION_LOCATION = 111;
@@ -71,7 +70,17 @@ final String URL_API_KEY = "&appid=0936895a398e594b0531599fe4c896cd";
     private TextView weatherDescription;
     private ImageView weatherIcon;
 
+
     WeatherAdapter mAdapter;
+
+    public void searchWeatherFunction(View view){
+        EditText nameEditText = findViewById(R.id.nameEditText);
+        Log.i("Info", "It worked!!");
+
+        Log.i("Values", nameEditText.getText().toString());
+        query = nameEditText.getText().toString();
+        downloadSearchWeatherData(query);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,7 +113,8 @@ final String URL_API_KEY = "&appid=0936895a398e594b0531599fe4c896cd";
                 .addOnConnectionFailedListener(this)
                 .build();
     }
-    public void downloadWeatherData(Location location ){
+    public void downloadWeatherData(Location location){
+
         final String fullCoords = URL_COORD + location.getLatitude() + "&lon=" + location.getLongitude();
         final String url = URL_BASE + fullCoords + URL_OPTIONS +  URL_API_KEY;
         final JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
@@ -145,7 +155,7 @@ final String URL_API_KEY = "&appid=0936895a398e594b0531599fe4c896cd";
 
                             DailyWeatherReport report = new DailyWeatherReport(cityName, currentTemp.intValue(),maxTemp.intValue(),minTemp.intValue(),country, weatherType, rawDate.intValue());
 
-                            Log.v("Sucker!", "Printing from class: " + report.getWeather());
+                            Log.v("Check!", "Printing from class: " + report.getWeather());
                             weatherReportList.add(report);
                         }
                 } catch (JSONException e){
@@ -157,7 +167,69 @@ final String URL_API_KEY = "&appid=0936895a398e594b0531599fe4c896cd";
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.v("Fun", "Err:" + error.getLocalizedMessage());
+                Log.v("Check", "Err:" + error.getLocalizedMessage());
+            }
+
+        });
+        Volley.newRequestQueue(this).add(jsonRequest);
+    }
+
+    public void downloadSearchWeatherData(String query ){
+        weatherReportList.clear();
+
+        final String fullCoords = "?q=" + query;
+        final String url = URL_BASE + fullCoords + URL_OPTIONS +  URL_API_KEY;
+        final JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                Log.v("Fun", "RES: " + response.toString());
+
+                try {
+                    JSONObject city = response.getJSONObject("city");
+                    String cityName = city.getString("name");
+                    String country = city.getString("country");
+                    JSONArray list = response.getJSONArray("list");
+//                    Log.v("JSON", "Name: " + cityName + " - " + "country: " + country);
+//                    JSONObject obj_b = list.getJSONObject(2);
+//                    JSONObject main_a = obj_b.getJSONObject("main");
+//                    Log.v("JSON", "Name: " + main_a);
+
+                    for(int i = 0; i < 15; i++) {
+                        JSONObject obj = list.getJSONObject(i);
+//                            JSONObject main = obj.getJSONObject("main");
+//                            Double currentTemp = main.getDouble("temp");
+//                            Double maxTemp = main.getDouble("temp_max");
+//                            Double minTemp = main.getDouble("temp_min");
+
+                        JSONObject temp = obj.getJSONObject("temp");
+
+                        Double currentTemp = temp.getDouble("day");
+                        Double maxTemp = temp.getDouble("max");
+                        Double minTemp = temp.getDouble("min");
+
+
+                        JSONArray weatherArr = obj.getJSONArray("weather");
+                        JSONObject weather = weatherArr.getJSONObject(0);
+                        String weatherType = weather.getString("main");
+//
+//                            String rawDate = obj.getString("dt_txt");
+                        Double rawDate = obj.getDouble("dt");
+
+                        DailyWeatherReport report = new DailyWeatherReport(cityName, currentTemp.intValue(),maxTemp.intValue(),minTemp.intValue(),country, weatherType, rawDate.intValue());
+
+                        Log.v("Check!", "Printing from class: " + report.getWeather());
+                        weatherReportList.add(report);
+                    }
+                } catch (JSONException e){
+                    Log.v("JSON", "EXC" + e.getLocalizedMessage());
+                }
+                updateUI();
+                mAdapter.notifyDataSetChanged();
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.v("Check", "Err:" + error.getLocalizedMessage());
             }
 
         });
@@ -176,6 +248,10 @@ final String URL_API_KEY = "&appid=0936895a398e594b0531599fe4c896cd";
                 case DailyWeatherReport.WEATHER_TYPE_RAIN:
                     weatherIconMini.setImageDrawable(getResources().getDrawable(R.mipmap.rainy));
                     weatherIcon.setImageDrawable(getResources().getDrawable(R.mipmap.rainy));
+                    break;
+                case DailyWeatherReport.WEATHER_TYPE_SNOW:
+                    weatherIconMini.setImageDrawable(getResources().getDrawable(R.mipmap.snow));
+                    weatherIcon.setImageDrawable(getResources().getDrawable(R.mipmap.snow));
                     break;
                 default:
                     weatherIcon.setImageDrawable(getResources().getDrawable(R.mipmap.sunny));
@@ -306,6 +382,9 @@ final String URL_API_KEY = "&appid=0936895a398e594b0531599fe4c896cd";
                     break;
                 case DailyWeatherReport.WEATHER_TYPE_RAIN:
                     list_weatherIcon.setImageDrawable(getResources().getDrawable(R.mipmap.rainy_mini));
+                    break;
+                case DailyWeatherReport.WEATHER_TYPE_SNOW:
+                    list_weatherIcon.setImageDrawable(getResources().getDrawable(R.mipmap.snow_mini));
                     break;
                 default:
                     list_weatherIcon.setImageDrawable(getResources().getDrawable(R.mipmap.sunny_mini));
