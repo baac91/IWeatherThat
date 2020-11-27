@@ -53,7 +53,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.O
 
     final String URL_BASE = "https://api.openweathermap.org/data/2.5/forecast/daily";
     final String URL_OPTIONS = "&units=imperial";
-    final String URL_API_KEY = "&appid=8442306bc6d8ffad931e6055702363d0";
+//    final String URL_API_KEY = "&appid=8442306bc6d8ffad931e6055702363d0";
+final String URL_API_KEY = "&appid=0936895a398e594b0531599fe4c896cd";
+
 
 
 
